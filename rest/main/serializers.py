@@ -17,9 +17,10 @@ class CourierSerializer(serializers.Serializer):
     def validate(self, data):
         couriers = models.Courier.objects.all()
         #  check courier_id
-        for c in couriers:
-            if data['courier_id'] == c.courier_id:
-                raise serializers.ValidationError({'courier_id': "Courier ID is not unique"})
+        if not self.partial:
+            for c in couriers:
+                if data['courier_id'] == c.courier_id:
+                    raise serializers.ValidationError({'courier_id': "Courier ID is not unique"})
         #  check courier_type
         if not (data['courier_type'] == 'foot' or data['courier_type'] == 'car' or data['courier_type'] == 'bike'):
             raise serializers.ValidationError({'courier_type': "Courier type is not valid"})

@@ -4,5 +4,6 @@ from django.conf.urls import url
 
 app_name = 'main'
 urlpatterns = [
-    url('couriers', views.couriers_post),
+    path('couriers', views.couriers_post),
+    path('couriers/<int:courier_id>', views.couriers_patch),
 ]

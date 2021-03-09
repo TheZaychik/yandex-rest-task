@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Courier(models.Model):
-    courier_id = models.IntegerField(verbose_name='Courier ID')
+    courier_id = models.IntegerField(verbose_name='Courier ID', unique=True)
     courier_type = models.CharField(verbose_name='Courier type', max_length=8)
     regions = models.JSONField(verbose_name='Regions')
     working_hours = models.JSONField(verbose_name='Working hours')
