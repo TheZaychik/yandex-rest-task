@@ -11,9 +11,9 @@ class Courier(models.Model):
 
 
 class Order(models.Model):
-    order_id = models.IntegerField(verbose_name='Order ID')
-    assigned = models.ForeignKey(to=Courier, verbose_name='Order assigner', on_delete=models.CASCADE)
+    order_id = models.IntegerField(verbose_name='Order ID', unique=True)
+    assigned = models.ForeignKey(to=Courier, verbose_name='Order assigner', on_delete=models.CASCADE, blank=True,
+                                 null=True)
     weight = models.FloatField(verbose_name='Weight')
     region = models.IntegerField(verbose_name='Region')
     delivery_hours = models.JSONField(verbose_name='Delivery hours')
-
