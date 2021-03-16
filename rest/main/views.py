@@ -90,5 +90,13 @@ def orders_post(request):
 
 @api_view(['POST'])
 def orders_assign(request):
-    courier = request.data.get('courier_id')
+    courier_id = request.data.get('courier_id')
+    courier = None
+    try:
+        courier = models.Courier.objects.get(courier_id=courier_id)
+    finally:
+        if courier is None:
+            return Response(status=400)
+        else:
+            return Response(status=200)
     
