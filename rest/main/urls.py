@@ -7,4 +7,5 @@ urlpatterns = [
     path('couriers/<int:courier_id>', views.couriers_patch),
     path('orders', views.orders_post),
     path('orders/assign', views.orders_assign),
+    path('orders/complete', views.orders_complete),
 ]

@@ -53,6 +53,8 @@ def couriers_patch(request, courier_id):
                                                            partial=True)
         if courier_serializer.is_valid():
             courier_serializer.update(courier, courier_to_patch)
+            subfunctions.order_update(models.Order.objects.all().filter(assigned_id=courier_id),
+                                      models.Courier.objects.get(courier_id=courier_id))
             return Response(courier_to_patch, status=200)
         else:
             print(courier_serializer.errors)
@@ -103,7 +105,6 @@ def orders_assign(request):
             orders_response = {
                 "orders": []
             }
-            weight = 0
             # foot 10 bike 15 car 50
             if courier.courier_type == 'foot':
                 weight = 10
@@ -112,7 +113,7 @@ def orders_assign(request):
             else:
                 weight = 50
             for o in orders:
-                if o.assigned is None or o.assigned == courier:
+                if (o.assigned is None or o.assigned == courier) and not o.complete:
                     if weight - o.weight >= 0:
                         if o.region in courier.regions:
                             time_is_right = subfunctions.order_time_handler(o, courier)
@@ -122,3 +123,23 @@ def orders_assign(request):
                                 orders_response['orders'].append({'id': o.order_id})
                                 o.save()
             return Response(orders_response, status=200)
+
+
+@api_view(['POST'])
+def orders_complete(request):
+    order, courier = None, None
+    courier_id = request.data.get('courier_id')
+    order_id = request.data.get('order_id')
+    try:
+        order = models.Order.objects.get(order_id=order_id)
+        courier = models.Courier.objects.get(courier_id=courier_id)
+    finally:
+        if order is None or courier is None:
+            return Response(status=400)
+        else:
+            if order.assigned == courier:
+                order.complete = True
+                order.save()
+                return Response({'order_id': order.order_id}, status=200)
+            else:
+                return Response(status=400)

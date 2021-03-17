@@ -55,6 +55,7 @@ class OrderSerializer(serializers.Serializer):
     weight = serializers.FloatField()
     region = serializers.IntegerField()
     delivery_hours = serializers.JSONField()
+    complete = serializers.BooleanField(required=False)
 
     def create(self, validated_data):
         return models.Order.objects.create(**validated_data)

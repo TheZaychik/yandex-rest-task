@@ -17,3 +17,5 @@ class Order(models.Model):
     weight = models.FloatField(verbose_name='Weight')
     region = models.IntegerField(verbose_name='Region')
     delivery_hours = models.JSONField(verbose_name='Delivery hours')
+    complete = models.BooleanField(verbose_name='Order complete', default=False)
+
