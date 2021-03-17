@@ -2,6 +2,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from main import models
 from main import serializers
+from main import subfunctions
 
 
 @api_view(['POST'])
@@ -98,5 +99,26 @@ def orders_assign(request):
         if courier is None:
             return Response(status=400)
         else:
-            return Response(status=200)
-    
+            orders = models.Order.objects.all()
+            orders_response = {
+                "orders": []
+            }
+            weight = 0
+            # foot 10 bike 15 car 50
+            if courier.courier_type == 'foot':
+                weight = 10
+            elif courier.courier_type == 'bike':
+                weight = 15
+            else:
+                weight = 50
+            for o in orders:
+                if o.assigned is None or o.assigned == courier:
+                    if weight - o.weight >= 0:
+                        if o.region in courier.regions:
+                            time_is_right = subfunctions.order_time_handler(o, courier)
+                            if time_is_right:
+                                o.assigned = courier
+                                weight -= o.weight
+                                orders_response['orders'].append({'id': o.order_id})
+                                o.save()
+            return Response(orders_response, status=200)
