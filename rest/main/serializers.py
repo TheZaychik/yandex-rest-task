@@ -8,8 +8,6 @@ class CourierSerializer(serializers.Serializer):
     courier_type = serializers.CharField(max_length=8)
     regions = serializers.JSONField()
     working_hours = serializers.JSONField()
-    rating = serializers.FloatField(default=0, allow_null=True)
-    earnings = serializers.IntegerField(default=0, allow_null=True)
 
     def create(self, validated_data):
         return models.Courier.objects.create(**validated_data)
@@ -51,11 +49,9 @@ class CourierSerializer(serializers.Serializer):
 
 class OrderSerializer(serializers.Serializer):
     order_id = serializers.FloatField()
-    assigned = serializers.PrimaryKeyRelatedField(source='Courier', queryset=models.Courier.objects.all(), required=False)
     weight = serializers.FloatField()
     region = serializers.IntegerField()
     delivery_hours = serializers.JSONField()
-    complete = serializers.BooleanField(required=False)
 
     def create(self, validated_data):
         return models.Order.objects.create(**validated_data)

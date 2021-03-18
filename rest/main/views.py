@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 from main import models
 from main import serializers
 from main import subfunctions
+from datetime import datetime
 
 
 @api_view(['POST'])
@@ -53,7 +54,7 @@ def couriers_patch(request, courier_id):
                                                            partial=True)
         if courier_serializer.is_valid():
             courier_serializer.update(courier, courier_to_patch)
-            subfunctions.order_update(models.Order.objects.all().filter(assigned_id=courier_id),
+            subfunctions.order_update(models.Order.objects.all().filter(assigned_id=courier.id),
                                       models.Courier.objects.get(courier_id=courier_id))
             return Response(courier_to_patch, status=200)
         else:
@@ -103,8 +104,25 @@ def orders_assign(request):
         else:
             orders = models.Order.objects.all()
             orders_response = {
-                "orders": []
+                "orders": [],
+                "assign_time": ""
             }
+            # check for not completed orders
+            time_assigned = False
+            for o in orders:
+                if o.assigned == courier and o.complete_time is None:
+                    orders_response['orders'].append({'id': o.order_id})
+                    if not time_assigned:
+                        orders_response['assign_time'] = o.assign_time
+                        time_assigned = True
+            # если есть незавершенные заказы
+            if len(orders_response['orders']) != 0:
+                return Response(orders_response, status=200)
+            else:
+                pass
+                courier.completed_delivery += 1
+                courier.save()
+
             # foot 10 bike 15 car 50
             if courier.courier_type == 'foot':
                 weight = 10
@@ -112,16 +130,23 @@ def orders_assign(request):
                 weight = 15
             else:
                 weight = 50
+
+            assign_time = datetime.now().isoformat()
+            orders_response['assign_time'] = assign_time
             for o in orders:
-                if (o.assigned is None or o.assigned == courier) and not o.complete:
+                if o.assigned is None:
                     if weight - o.weight >= 0:
                         if o.region in courier.regions:
                             time_is_right = subfunctions.order_time_handler(o, courier)
                             if time_is_right:
                                 o.assigned = courier
+                                o.assign_time = assign_time
                                 weight -= o.weight
                                 orders_response['orders'].append({'id': o.order_id})
                                 o.save()
+            # если не нашлось подходящих заказов
+            if len(orders_response['orders']) == 0:
+                return Response({"orders": []}, status=200)
             return Response(orders_response, status=200)
 
 
@@ -130,6 +155,7 @@ def orders_complete(request):
     order, courier = None, None
     courier_id = request.data.get('courier_id')
     order_id = request.data.get('order_id')
+    complete_time = datetime.fromisoformat(request.data.get('complete_time'))
     try:
         order = models.Order.objects.get(order_id=order_id)
         courier = models.Courier.objects.get(courier_id=courier_id)
@@ -138,8 +164,9 @@ def orders_complete(request):
             return Response(status=400)
         else:
             if order.assigned == courier:
-                order.complete = True
-                order.save()
+                if order.complete_time is None:
+                    order.complete_time = complete_time.isoformat()
+                    order.save()
                 return Response({'order_id': order.order_id}, status=200)
             else:
                 return Response(status=400)

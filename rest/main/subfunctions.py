@@ -22,13 +22,15 @@ def order_update(orders, courier):
         weight = 15
     else:
         weight = 50
+    print(weight)
     for o in orders:
-        if not o.complete:
+        if o.complete_time is None:
             if weight - o.weight >= 0:
                 if o.region in courier.regions:
                     time_is_right = order_time_handler(o, courier)
                     if time_is_right:
                         continue
+        o.assign_time = None
         o.assigned = None
         o.save()
 
