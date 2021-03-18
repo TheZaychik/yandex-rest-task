@@ -61,7 +61,32 @@ def couriers_patch(request, courier_id):
             print(courier_serializer.errors)
             return Response(status=400)
     else:
-        return Response('GET DUMMY', status=200)
+        if courier.completed_delivery == 0:
+            return Response(serializers.CourierSerializer(courier).data, status=200)
+        orders = models.Order.objects.all().filter(assigned_id=courier.id, complete_time__isnull=False).order_by(
+            'region')
+        print(orders)
+        regions_time = {}
+        avg_time = []
+        c = 0
+        for o in orders:
+            if courier.courier_type == 'foot':
+                c = 2
+            elif courier.courier_type == 'bike':
+                c = 5
+            else:
+                c = 9
+            timedelta = o.complete_time - o.assign_time
+            if o.region not in regions_time.keys():
+                regions_time[o.region] = []
+            regions_time[o.region].append(timedelta.seconds)
+        keys = list(regions_time.keys())
+        for k in keys:
+            avg_time.append(sum(regions_time[k]) / len(regions_time[k]))
+        courier.rating = round((60 * 60 - min(min(avg_time), 60 * 60)) / (60 * 60) * 5, 2)
+        courier.earnings = courier.completed_delivery * 500 * c
+        courier.save()
+        return Response(serializers.CourierSerializer(courier).data, status=200)
 
 
 @api_view(['POST'])
@@ -118,10 +143,6 @@ def orders_assign(request):
             # если есть незавершенные заказы
             if len(orders_response['orders']) != 0:
                 return Response(orders_response, status=200)
-            else:
-                pass
-                courier.completed_delivery += 1
-                courier.save()
 
             # foot 10 bike 15 car 50
             if courier.courier_type == 'foot':
@@ -167,6 +188,15 @@ def orders_complete(request):
                 if order.complete_time is None:
                     order.complete_time = complete_time.isoformat()
                     order.save()
+                orders = models.Order.objects.all().filter(assigned_id=courier.id)
+                completed_orders = True
+                # проверка на завершение развоза
+                for o in orders:
+                    if o.complete_time is None:
+                        completed_orders = False
+                if completed_orders:
+                    courier.completed_delivery += 1
+                    courier.save()
                 return Response({'order_id': order.order_id}, status=200)
             else:
                 return Response(status=400)

@@ -8,7 +8,10 @@ class Courier(models.Model):
     working_hours = models.JSONField(verbose_name='Working hours')
     rating = models.FloatField(verbose_name='Rating', default=0, null=True)
     earnings = models.IntegerField(verbose_name='Earnings', default=0, null=True)
-    completed_delivery = models.IntegerField(verbose_name='Completed delivery', default=-1)
+    completed_delivery = models.IntegerField(verbose_name='Completed delivery', default=0)
+
+    def __str__(self):
+        return str(self.courier_id)
 
 
 class Order(models.Model):
@@ -20,4 +23,7 @@ class Order(models.Model):
     delivery_hours = models.JSONField(verbose_name='Delivery hours')
     assign_time = models.DateTimeField(verbose_name='Assign time', null=True, blank=True)
     complete_time = models.DateTimeField(verbose_name='Complete time', null=True, blank=True)
+
+    def __str__(self):
+        return str(self.order_id)
 

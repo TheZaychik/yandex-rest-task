@@ -8,6 +8,8 @@ class CourierSerializer(serializers.Serializer):
     courier_type = serializers.CharField(max_length=8)
     regions = serializers.JSONField()
     working_hours = serializers.JSONField()
+    rating = serializers.FloatField(default=0, allow_null=True)
+    earnings = serializers.IntegerField(default=0, allow_null=True)
 
     def create(self, validated_data):
         return models.Courier.objects.create(**validated_data)
