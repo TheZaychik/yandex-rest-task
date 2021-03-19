@@ -33,6 +33,3 @@ def order_update(orders, courier):
         o.assign_time = None
         o.assigned = None
         o.save()
-
-
-

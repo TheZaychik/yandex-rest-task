@@ -1,3 +1,8 @@
-from django.test import TestCase
+import json
+from rest_framework import status
+from django.test import TestCase, Client
+from django.urls import reverse
 
-# Create your tests here.
+
+class Couriers(TestCase):
+    pass

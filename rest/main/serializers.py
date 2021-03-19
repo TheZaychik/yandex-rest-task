@@ -68,7 +68,6 @@ class OrderSerializer(serializers.Serializer):
         #  check weight
         if ((data['weight'] < 0.01) or (data['weight'] > 50)) or ((type(data['weight']) is not float) and (
                 type(data['weight']) is not int)):
-            print(type(data['weight']))
             raise serializers.ValidationError({'weight': "Weight is not valid"})
         else:
             data['weight'] = round(data['weight'], 2)
