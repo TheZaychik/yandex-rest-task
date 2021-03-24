@@ -20,21 +20,23 @@ sqlparse==0.4.1
 ``$ sudo apt-get install python3``
 3. Создать виртуальное окружение (удалив старое)  
 ``$ rm -rf venv``  
-``$ python3 -m venv venv``   
-4. Установить внешние зависимости в виртуальное окружение  
+``$ python3 -m venv venv`` 
+4. Подключить виртуальное оокружение
+``$ source venv/bin/activate``   
+5. Установить внешние зависимости в виртуальное окружение  
 ``$ pip3 install -r requirements.txt``
-5. Установить MySQL (версии 8) на сервер  
+6. Установить MySQL (версии 8) на сервер  
 ``$ sudo apt install mysql-server mysql-client``
-6. Произвести первоначальную настройку БД  
+7. Произвести первоначальную настройку БД  
 ``$ sudo mysql_secure_installation``  
-7. Создать базу данных и специального пользователя для rest  
+8. Создать базу данных и специального пользователя для rest  
 ```mysql
 CREATE DATABASE <database>; # <имя_базы>
 CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';
 GRANT USAGE ON *.* TO 'username'@'localhost';
 GRANT ALL PRIVILEGES ON <database>.* TO 'username'@'localhost';
 ```
-8. В `rest/rest/settings.py` сконфигурировать настройки БД
+9. В `rest/rest/settings.py` сконфигурировать настройки БД
 ```python
 DATABASES = {
     'default': {
@@ -46,9 +48,9 @@ DATABASES = {
     },
 }
 ```
-9. Провести миграции в БД  
+10. Провести миграции в БД  
 ``$ python3 manage.py migrate``
-10. Запустить решение  
+11. Запустить решение  
 ``$ python3 manage.py runserver 0.0.0.0:80``
 >Для запуска тестов используйте    
 ``$ python3 manage.py test``
