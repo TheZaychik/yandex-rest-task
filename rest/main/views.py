@@ -41,7 +41,7 @@ def couriers_patch(request, courier_id):
     try:
         courier = models.Courier.objects.get(courier_id=courier_id)
     except:
-        return Response(status=400)
+        return Response(status=404)
     if request.method == 'PATCH':
         courier_to_patch = serializers.CourierSerializer(courier).data
         field = request.data
