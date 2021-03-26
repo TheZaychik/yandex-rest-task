@@ -7,7 +7,7 @@ from datetime import datetime
 
 
 @api_view(['POST'])
-def couriers_post(request):
+def couriers_post(request):  # получение данных о курьерах
     couriers = request.data.get('data')
     if couriers is None:
         return Response(status=400)
@@ -36,7 +36,7 @@ def couriers_post(request):
         return Response(valid, status=201)
 
 
-@api_view(['PATCH', 'GET'])
+@api_view(['PATCH', 'GET'])  # изменение курьеров, либо получение информации о курьере
 def couriers_patch(request, courier_id):
     try:
         courier = models.Courier.objects.get(courier_id=courier_id)
@@ -59,28 +59,20 @@ def couriers_patch(request, courier_id):
                                                            partial=True)
         if courier_serializer.is_valid():
             courier_serializer.update(courier, courier_to_patch)
-            subfunctions.order_update(models.Order.objects.all().filter(assigned_id=courier.id),
-                                      models.Courier.objects.get(courier_id=courier_id))
+            subfunctions.order_update(
+                models.Order.objects.all().filter(assigned_id=courier.id, complete_time__isnull=True),
+                models.Courier.objects.get(courier_id=courier_id))
             return Response(courier_to_patch, status=200)
         else:
-            print(courier_serializer.errors)
             return Response(status=400)
     else:
-        if courier.completed_delivery == 0:
+        if len(courier.delivery) == 0:
             return Response(serializers.CourierSerializer(courier).data, status=200)
         orders = models.Order.objects.all().filter(assigned_id=courier.id, complete_time__isnull=False).order_by(
             'region')
-        print(orders)
         regions_time = {}
         avg_time = []
-        c = 0
         for o in orders:
-            if courier.courier_type == 'foot':
-                c = 2
-            elif courier.courier_type == 'bike':
-                c = 5
-            else:
-                c = 9
             timedelta = o.complete_time - o.assign_time
             if o.region not in regions_time.keys():
                 regions_time[o.region] = []
@@ -88,16 +80,23 @@ def couriers_patch(request, courier_id):
         keys = list(regions_time.keys())
         for k in keys:
             avg_time.append(sum(regions_time[k]) / len(regions_time[k]))
-        print(avg_time)
         courier.rating = round((60 * 60 - min(min(avg_time), 60 * 60)) / (60 * 60) * 5, 2)
-        print(courier.rating)
-        courier.earnings = courier.completed_delivery * 500 * c
+        for delivery in courier.delivery:
+            if not delivery['paid']:
+                if delivery['delivery_type'] == 'foot':
+                    c = 2
+                elif delivery['delivery_type'] == 'bike':
+                    c = 5
+                else:
+                    c = 9
+                courier.earnings += 500 * c
+                delivery['paid'] = True
         courier.save()
         return Response(serializers.CourierSerializer(courier).data, status=200)
 
 
 @api_view(['POST'])
-def orders_post(request):
+def orders_post(request):  # получение заказов
     orders = request.data.get('data')
     if orders is None:
         return Response(status=400)
@@ -138,7 +137,7 @@ def orders_assign(request):
         "orders": [],
         "assign_time": ""
     }
-    # check for not completed orders
+    # проверка на незавершенные заказы
     time_assigned = False
     for o in orders:
         if o.assigned == courier and o.complete_time is None:
@@ -149,7 +148,6 @@ def orders_assign(request):
     # если есть незавершенные заказы
     if len(orders_response['orders']) != 0:
         return Response(orders_response, status=200)
-
     # foot 10 bike 15 car 50
     if courier.courier_type == 'foot':
         weight = 10
@@ -157,11 +155,10 @@ def orders_assign(request):
         weight = 15
     else:
         weight = 50
-
     assign_time = datetime.now().isoformat()
     orders_response['assign_time'] = assign_time
     for o in orders:
-        if o.assigned is None:
+        if o.assigned is None and o.assign_time is None and o.complete_time is None:
             if weight - o.weight >= 0:
                 if o.region in courier.regions:
                     time_is_right = subfunctions.order_time_handler(o, courier)
@@ -174,11 +171,13 @@ def orders_assign(request):
     # если не нашлось подходящих заказов
     if len(orders_response['orders']) == 0:
         return Response({"orders": []}, status=200)
+    courier.delivery.append({'delivery_type': courier.courier_type, 'completed': False, 'paid': False})
+    courier.save()
     return Response(orders_response, status=200)
 
 
 @api_view(['POST'])
-def orders_complete(request):
+def orders_complete(request):  # уведомление о завершении развоза
     courier_id = request.data.get('courier_id')
     order_id = request.data.get('order_id')
     try:
@@ -187,7 +186,7 @@ def orders_complete(request):
         complete_time = datetime.fromisoformat(request.data.get('complete_time'))
     except:
         return Response(status=400)
-    if order.assigned == courier:
+    if order.assigned_id == courier.courier_id:
         if order.complete_time is None:
             order.complete_time = complete_time.isoformat()
             order.save()
@@ -198,7 +197,7 @@ def orders_complete(request):
                 if o.complete_time is None:
                     completed_orders = False
             if completed_orders:
-                courier.completed_delivery += 1
+                courier.delivery[len(courier.delivery) - 1]['completed'] = True
                 courier.save()
         return Response({'order_id': order.order_id}, status=200)
     else:

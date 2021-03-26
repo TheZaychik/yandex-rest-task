@@ -1,6 +1,7 @@
 import time
 
 
+# проверка на подходящее время для принятия заказа
 def order_time_handler(order, courier):
     for dh in order.delivery_hours:
         order_starts = time.strptime(dh[:5], '%H:%M')
@@ -13,6 +14,7 @@ def order_time_handler(order, courier):
     return False
 
 
+# обновление заказов при изменении типа курьера
 def order_update(orders, courier):
     if len(orders) == 0:
         return
@@ -22,7 +24,6 @@ def order_update(orders, courier):
         weight = 15
     else:
         weight = 50
-    print(weight)
     for o in orders:
         if o.complete_time is None:
             if weight - o.weight >= 0:

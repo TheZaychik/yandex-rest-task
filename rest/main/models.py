@@ -8,7 +8,9 @@ class Courier(models.Model):
     working_hours = models.JSONField(verbose_name='Working hours')
     rating = models.FloatField(verbose_name='Rating', default=0, null=True)
     earnings = models.IntegerField(verbose_name='Earnings', default=0, null=True)
-    completed_delivery = models.IntegerField(verbose_name='Completed delivery', default=0)
+    delivery = models.JSONField(verbose_name='Delivery', default=list, blank=True)
+    # [{"paid" - оплачен ли развоз, "completed" - завершен ли он,
+    # "delivery_type" - тип курьера на момент формирования заказа}]
 
     def __str__(self):
         return str(self.courier_id)
@@ -26,4 +28,3 @@ class Order(models.Model):
 
     def __str__(self):
         return str(self.order_id)
-

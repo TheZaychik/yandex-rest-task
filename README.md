@@ -37,19 +37,19 @@ sqlparse==0.4.1
 8. Создать базу данных и специального пользователя для сервиса  
 ```mysql
 CREATE DATABASE <database>; # <имя_базы>
-CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';
-GRANT USAGE ON *.* TO 'username'@'localhost';
-GRANT ALL PRIVILEGES ON <database>.* TO 'username'@'localhost';
+CREATE USER '<username>'@'localhost' IDENTIFIED BY '<password>';
+GRANT USAGE ON *.* TO '<username>'@'localhost';
+GRANT ALL PRIVILEGES ON <database>.* TO '<username>'@'localhost';
 ```
-9. В `rest/rest/settings.py` сконфигурировать настройки БД, прописав базу данных, а так же пользователя для взаимодействия
+9. В `rest/rest/settings.py` сконфигурировать настройки DATABASES, прописав имя БД, а так же пользователя для взаимодействия
 ```python
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'HOST': '127.0.0.1',
         'NAME': "<database>",
-        'USER': 'username',
-        'PASSWORD': 'password',
+        'USER': '<username>',
+        'PASSWORD': '<password>',
     },
 }
 ```
