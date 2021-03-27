@@ -37,7 +37,7 @@ def couriers_post(request):  # получение данных о курьера
 
 
 @api_view(['PATCH', 'GET'])  # изменение курьеров, либо получение информации о курьере
-def couriers_patch(request, courier_id):
+def couriers_patch_get(request, courier_id):
     try:
         courier = models.Courier.objects.get(courier_id=courier_id)
     except:
@@ -140,7 +140,7 @@ def orders_assign(request):
     # проверка на незавершенные заказы
     time_assigned = False
     for o in orders:
-        if o.assigned == courier and o.complete_time is None:
+        if o.assigned_id == courier.id and o.complete_time is None:
             orders_response['orders'].append({'id': o.order_id})
             if not time_assigned:
                 orders_response['assign_time'] = o.assign_time
@@ -186,7 +186,7 @@ def orders_complete(request):  # уведомление о завершении 
         complete_time = datetime.fromisoformat(request.data.get('complete_time'))
     except:
         return Response(status=400)
-    if order.assigned_id == courier.courier_id:
+    if order.assigned_id == courier.id:
         if order.complete_time is None:
             order.complete_time = complete_time.isoformat()
             order.save()
