@@ -37,9 +37,8 @@ sqlparse==0.4.1
 8. Создать базу данных и специального пользователя для сервиса  
 ```mysql
 CREATE DATABASE <database>; # <имя_базы>
-CREATE USER '<username>'@'localhost' IDENTIFIED BY '<password>';
-GRANT USAGE ON *.* TO '<username>'@'localhost';
-GRANT ALL PRIVILEGES ON <database>.* TO '<username>'@'localhost';
+CREATE USER '<username>'@'localhost' IDENTIFIED BY 'password';
+GRANT ALL ON <database>.* TO '<username>'@'localhost';
 ```
 9. В `rest/rest/settings.py` сконфигурировать настройки DATABASES, прописав имя БД, а так же пользователя для взаимодействия
 ```python
@@ -57,8 +56,10 @@ DATABASES = {
 ``$ python3 manage.py migrate``
 11. Запустить решение  
 ``$ python3 manage.py runserver 0.0.0.0:8080``
->Для запуска тестов используйте    
-``$ python3 manage.py test``
+>- Для запуска тестов используйте    
+``$ python3 manage.py test``  
+>- Поднятие после ребута осуществляется с помощью cron, через 30 секунд после старта системы  
+> (нужно подождать около 2-3 минут)
 
 
 
